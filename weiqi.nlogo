@@ -1,6 +1,6 @@
 extensions [array]
 
-globals [ mouse-clicked? pre-step-color pieces history-pieces step ]
+globals [ mouse-clicked? pre-step-color pieces history-pieces step abcd ]
 
 breed [ emptyspaces  emptyspace ]
 breed [ whitepieces  whitepiece ]
