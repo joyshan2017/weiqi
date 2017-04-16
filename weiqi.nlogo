@@ -1,6 +1,6 @@
 extensions [array]
 
-globals [ mouse-clicked? pre-step-color pieces history-pieces step ]
+globals [ mouse-clicked? in-history-step? prev-step-color postion-color-code history-position step-count history-step-count ]
 
 breed [ emptyspaces  emptyspace ]
 breed [ whitepieces  whitepiece ]
@@ -9,86 +9,114 @@ undirected-link-breed [lineLinks lineLink]
 undirected-link-breed [white-links white-link]
 undirected-link-breed [black-links black-link]
 
+to draw-chessboard
+  clear-all
+  ask patches with [ abs pxcor < 19 and abs pycor < 19 ] [
+    sprout 1 [
+      set pcolor yellow
+      set shape "circle"
+      set size 0
+    ]
+  ]
+  ask turtles [ create-links-with other turtles with [ distance myself = 1 ] ]
+end
 
+to init-var
+  set prev-step-color white
+  set postion-color-code array:from-list n-values 361 [ 0 ]
+  set history-position  array:from-list n-values 361 [ 0 ]
+  set step-count -1
+  set history-step-count -1
+  set in-history-step? false
+end
 
 to setup
-clear-all
-ask patches with [abs pxcor < 19 and abs pycor < 19 ]
-[ sprout 1 [
-  set pcolor yellow
-  set shape "circle"
-  set size 0]
-]
-ask turtles [ create-links-with other turtles with [ distance myself = 1 ] ]
-set pre-step-color white
-set pieces array:from-list n-values 361 [ 0 ]
-set history-pieces array:from-list n-values 361 [ 0 ]
-set step -1
+  draw-chessboard
+  init-var
 end
 
 to go
-
   mouse-manager
   check-death
-  clear
 end
 
-
-
+to is-in-history-step
+  ifelse history-step-count < step-count [set in-history-step? true] [set in-history-step? false]
+end
 
 to mouse-manager
+  is-in-history-step
+  if not in-history-step? [
+    ifelse mouse-down? [
+      if not mouse-clicked? [
+        set mouse-clicked? true
+        ;;print mouse-ycor
+        ;;print mouse-xcor
+        let position-num (( abs (round mouse-ycor) * 19) + (round mouse-xcor) )
+        print position-num
 
-  ifelse mouse-down? [
-    if not mouse-clicked? [
-     set mouse-clicked? true
-   ;;print mouse-ycor
-   ;;print mouse-xcor
-     let position-num (( abs (round mouse-ycor) * 19) + (round mouse-xcor) )
-     print position-num
+        let color-code array:item postion-color-code position-num
+        ;;print color-code
 
+        if color-code = 0 [
+          crt 1 [
+            ifelse prev-step-color = white [
+              set color black  ;;black color-code is 1
+              set prev-step-color black
+            ] [
+              set color white  ;;white color-code is 2
+              set prev-step-color white
+            ]
 
-     let value array:item pieces position-num
+            set shape "circle"
+            set size 1
+            setxy ( round mouse-xcor )( round mouse-ycor )
 
-     ;;print value
+            ifelse prev-step-color = white [ set color-code 2 ] [ set color-code 1 ]
+            ;; print value
+            array:set postion-color-code position-num color-code
 
-   if value = 0  [ crt 1 [
-       set shape "circle"
-       set size 1
+            set step-count step-count + 1
+            set history-step-count step-count
+            print step-count
 
-        ifelse pre-step-color = white [
-         set color black  ;;black is 1
-        set pre-step-color black
-        ][
-      set color white  ;;white is 2
-       set pre-step-color white
-       ]
-
-        setxy (round mouse-xcor )( round mouse-ycor )
-
-       ifelse pre-step-color = white [set value 2] [set value 1]
-    ;; print value
-     array:set pieces position-num value
-       set step step + 1
-      print step
-
-      array:set history-pieces step value
-
+            array:set history-position step-count position-num
+          ]
         ]
-
-   ]
+      ]
+    ] [
+      set mouse-clicked? false
     ]
   ]
-    [
-      set mouse-clicked? false
-   ]
-
 end
 
-to clear
+to prevstep
+  if history-step-count > -1 [
+    set history-step-count history-step-count - 1
+    draw-chessboard
 
+    foreach n-values history-step-count [?] [
+      let position-num array:item history-position ?
+      let color-code array:item postion-color-code position-num
+
+      crt 1 [
+        ifelse color-code = 1 [
+          set color black  ;;black color-code is 1
+        ] [
+          set color white  ;;white color-code is 2
+        ]
+
+        set shape "circle"
+        set size 1
+        setxy ( -(round position-num + 1 % 19) )( floor position-num / 19 )
+      ]
+    ]
+  ]
 end
 
+to nextstep
 
+end
 
 to check-death
 
@@ -156,12 +184,29 @@ NIL
 1
 
 BUTTON
-51
-152
-114
-185
+19
+139
+106
+172
 NIL
-clear
+prevstep
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+118
+139
+205
+172
+NIL
+nextstep
 NIL
 1
 T
