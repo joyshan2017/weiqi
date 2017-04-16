@@ -1,6 +1,6 @@
 extensions [array]
 
-globals [ mouse-clicked? pre-step-color pieces history-pieces step abcd ]
+globals [ mouse-clicked? pre-step-color pieces history-pieces step ]
 
 breed [ emptyspaces  emptyspace ]
 breed [ whitepieces  whitepiece ]
@@ -93,7 +93,6 @@ end
 to check-death
 
 end
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
